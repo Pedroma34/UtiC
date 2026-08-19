@@ -43,11 +43,11 @@ static void counter_callback(AllocatorCounterEvent event, const AllocatorCounter
 i32 main(void) {
     AllocatorCounter counter = allocator_counter_create(system_allocator(), counter_callback, stdout);
     Arena arena = { 0 };
+    EventBus event_bus = { 0 };
     if(!arena_create(&arena, allocator_counter_get_allocator(&counter), MB(1))) {
         printf("Arena creation failed\n");
         goto cleanup;
     }
-    EventBus event_bus = { 0 };
     if(!event_bus_create(&event_bus, arena_get_allocator(&arena))) {
         printf("Event Bus creation failed\n");
         goto cleanup;

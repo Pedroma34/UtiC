@@ -5,3 +5,7 @@ include(CTest)
 
 add_subdirectory(UtiC)
 add_subdirectory(Examples)
+
+if(BUILD_TESTING)
+    add_subdirectory(Tests)
+endif()

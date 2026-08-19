@@ -60,7 +60,7 @@ void arena_clear(Arena* arena) {
 bool arena_is_empty(Arena* arena) {
     if(!arena)
         return TRUE;
-    return arena->size != 0;
+    return arena->size == 0;
 }
 
 Allocator arena_get_allocator(Arena *arena) {
