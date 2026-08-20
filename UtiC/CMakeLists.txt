@@ -10,6 +10,7 @@ set(
     "src/memory/allocator.c"
     "src/memory/allocator_counter.c"
     "$<$<PLATFORM_ID:Windows>:src/platform/win32/allocator_system.c>"
+    "$<$<PLATFORM_ID:Linux>:src/platform/linux/allocator_system.c>"
     "src/memory/arena.c"
     #containers
     "src/containers/darray.c"
