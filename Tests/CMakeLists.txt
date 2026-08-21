@@ -24,7 +24,7 @@ set(
     null_descriptors_are_rejected
     create_accepts_uninitialized_output
     subscriber_identity_includes_callback
-    event_codes_use_full_u64_range
+    event_code_range_is_enforced
     recursive_process_is_rejected
     destroy_during_process_is_safe
     arena_empty_contract

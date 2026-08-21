@@ -358,9 +358,10 @@ static bool test_subscriber_identity_includes_callback(void) {
     return TRUE;
 }
 
-static bool test_event_codes_use_full_u64_range(void) {
+static bool test_event_code_range_is_enforced(void) {
     const EventCode low_code = UINT64_C(0);
-    const EventCode high_code = UINT64_C(0xfedcba9876543210);
+    const EventCode high_code = EVENT_BUS_MAX_EVENT_TYPES - UINT64_C(1);
+    const EventCode invalid_code = EVENT_BUS_MAX_EVENT_TYPES;
     u32 payload = 99;
     BusFixture fixture;
     CountState low = { 0 };
@@ -369,8 +370,10 @@ static bool test_event_codes_use_full_u64_range(void) {
 
     EventSubscriber low_subscriber = { low_code, &low, count_callback };
     EventSubscriber high_subscriber = { high_code, &high, count_callback };
+    EventSubscriber invalid_subscriber = { invalid_code, &high, count_callback };
     CHECK(event_bus_subscribe(&fixture.bus, &low_subscriber));
     CHECK(event_bus_subscribe(&fixture.bus, &high_subscriber));
+    CHECK(!event_bus_subscribe(&fixture.bus, &invalid_subscriber));
 
     EventContext high_context = event_bus_make_context(
         high_code,
@@ -386,6 +389,14 @@ static bool test_event_codes_use_full_u64_range(void) {
         sizeof(payload),
         _Alignof(u32)
     );
+    EventContext invalid_context = event_bus_make_context(
+        invalid_code,
+        NULL,
+        &payload,
+        sizeof(payload),
+        _Alignof(u32)
+    );
+    CHECK(!event_bus_publish(&fixture.bus, &invalid_context));
     CHECK(event_bus_publish(&fixture.bus, &high_context));
     CHECK(event_bus_publish(&fixture.bus, &low_context));
     CHECK(event_bus_process(&fixture.bus));
@@ -562,7 +573,7 @@ static const TestCase TEST_CASES[] = {
     { "null_descriptors_are_rejected", test_null_descriptors_are_rejected },
     { "create_accepts_uninitialized_output", test_create_accepts_uninitialized_output },
     { "subscriber_identity_includes_callback", test_subscriber_identity_includes_callback },
-    { "event_codes_use_full_u64_range", test_event_codes_use_full_u64_range },
+    { "event_code_range_is_enforced", test_event_code_range_is_enforced },
     { "recursive_process_is_rejected", test_recursive_process_is_rejected },
     { "destroy_during_process_is_safe", test_destroy_during_process_is_safe },
     { "arena_empty_contract", test_arena_empty_contract },

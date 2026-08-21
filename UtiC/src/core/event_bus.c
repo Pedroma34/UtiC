@@ -9,7 +9,6 @@ typedef struct EventListener {
 } EventListener;
 
 typedef struct Event {
-    EventCode code;
     EventListener listeners[EVENT_BUS_MAX_LISTENERS_PER_TYPE];
     usz listeners_count;
 } Event;
@@ -17,23 +16,11 @@ typedef struct Event {
 #define EVENT_ARENA_SIZE KB(56)
 typedef struct EventBusImpl {
     Event* registry;
-    usz registry_count;
     DArray queue;
     Arena payload_arena;
     bool processing;
     bool destroy_requested;
 } EventBusImpl;
-
-static Event* event_bus_find_event(EventBusImpl* event_bus, EventCode code) {
-    if(!event_bus || !event_bus->registry)
-        return NULL;
-
-    for(usz i = 0; i < event_bus->registry_count; i++) {
-        if(event_bus->registry[i].code == code)
-            return &event_bus->registry[i];
-    }
-    return NULL;
-}
 
 static void event_bus_destroy_now(EventBus* bus) {
     if(!bus || !bus->impl)
@@ -96,16 +83,11 @@ void event_bus_destroy(EventBus *bus) {
 bool event_bus_subscribe(EventBus* bus, const EventSubscriber* subscriber) {
     if(!bus || !bus->impl || bus->impl->destroy_requested || !subscriber || !subscriber->callback)
         return FALSE;
+    if(subscriber->code >= EVENT_BUS_MAX_EVENT_TYPES)
+        return FALSE;
 
     EventBusImpl* event_bus = bus->impl;
-    Event* event = event_bus_find_event(event_bus, subscriber->code);
-    if(!event) {
-        if(event_bus->registry_count >= EVENT_BUS_MAX_EVENT_TYPES)
-            return FALSE;
-        event = &event_bus->registry[event_bus->registry_count];
-        event->code = subscriber->code;
-        event_bus->registry_count++;
-    }
+    Event* event = &event_bus->registry[(u64)subscriber->code];
     if(event->listeners_count >= EVENT_BUS_MAX_LISTENERS_PER_TYPE)
         return FALSE;
 
@@ -116,8 +98,8 @@ bool event_bus_subscribe(EventBus* bus, const EventSubscriber* subscriber) {
             return FALSE;
     }
 
-    EventListener* new_listener = &event->listeners[event->listeners_count];
-    new_listener->callback      = subscriber->callback;
+    EventListener* new_listener      = &event->listeners[event->listeners_count];
+    new_listener->callback           = subscriber->callback;
     new_listener->context.subscriber = subscriber->subscriber;
     new_listener->context.code       = subscriber->code;
     event->listeners_count++;
@@ -131,13 +113,14 @@ bool event_bus_publish(EventBus *bus, const EventContext *context) {
     /* Power of two */
     if((context->payload_alignment & (context->payload_alignment - 1)) != 0)
         return FALSE;
+    if(context->code >= EVENT_BUS_MAX_EVENT_TYPES)
+        return FALSE;
 
     EventBusImpl* event_bus = bus->impl;
-    Event* event = event_bus_find_event(event_bus, context->code);
-    if(!event || event->listeners_count == 0)
+    Event* event = &event_bus->registry[(u64)context->code];
+    if(event->listeners_count == 0)
         return FALSE;
-    if(event_bus->queue.size > EVENT_BUS_MAX_QUEUED_DELIVERIES ||
-       event->listeners_count > EVENT_BUS_MAX_QUEUED_DELIVERIES - event_bus->queue.size)
+    if(event_bus->queue.size > EVENT_BUS_MAX_QUEUED_DELIVERIES || event->listeners_count > EVENT_BUS_MAX_QUEUED_DELIVERIES - event_bus->queue.size)
         return FALSE;
 
     const usz queue_checkpoint = event_bus->queue.size;
@@ -148,16 +131,12 @@ bool event_bus_publish(EventBus *bus, const EventContext *context) {
         EventListener* listener = &event->listeners[i];
         staged_listeners[i] = *listener;
         staged_listeners[i].context.publisher = context->publisher;
-        staged_listeners[i].context.payload = allocator_alloc(
-            &arena_allocator,
-            context->payload_size,
-            context->payload_alignment
-        );
+        staged_listeners[i].context.payload = allocator_alloc(&arena_allocator, context->payload_size, context->payload_alignment);
         if(!staged_listeners[i].context.payload) {
             event_bus->payload_arena.size = arena_checkpoint;
             return FALSE;
         }
-        staged_listeners[i].context.payload_size = context->payload_size;
+        staged_listeners[i].context.payload_size      = context->payload_size;
         staged_listeners[i].context.payload_alignment = context->payload_alignment;
         memcpy(staged_listeners[i].context.payload, context->payload, context->payload_size);
     }
