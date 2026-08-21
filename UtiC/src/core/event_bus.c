@@ -16,7 +16,7 @@ typedef struct Event {
 #define EVENT_ARENA_SIZE KB(56)
 typedef struct EventBusImpl {
     Event* registry;
-    DArray queue;
+    DARRAY(EventListener) queue;
     Arena payload_arena;
     bool processing;
     bool destroy_requested;
@@ -57,7 +57,7 @@ bool event_bus_create(EventBus* bus, Allocator backing_allocator) {
         event_bus_destroy_now(bus);
         return FALSE;
     }
-    if(!DARRAY_CREATE(EventListener, &evnt_bus->queue, backing_allocator, EVENT_BUS_MAX_QUEUED_DELIVERIES)) {
+    if(!DARRAY_CREATE(&evnt_bus->queue, backing_allocator, EVENT_BUS_MAX_QUEUED_DELIVERIES)) {
         event_bus_destroy_now(bus);
         return FALSE;
     }
@@ -120,10 +120,11 @@ bool event_bus_publish(EventBus *bus, const EventContext *context) {
     Event* event = &event_bus->registry[(u64)context->code];
     if(event->listeners_count == 0)
         return FALSE;
-    if(event_bus->queue.size > EVENT_BUS_MAX_QUEUED_DELIVERIES || event->listeners_count > EVENT_BUS_MAX_QUEUED_DELIVERIES - event_bus->queue.size)
+    const usz queued_count = DARRAY_SIZE(&event_bus->queue);
+    if(queued_count > EVENT_BUS_MAX_QUEUED_DELIVERIES || event->listeners_count > EVENT_BUS_MAX_QUEUED_DELIVERIES - queued_count)
         return FALSE;
 
-    const usz queue_checkpoint = event_bus->queue.size;
+    const usz queue_checkpoint = queued_count;
     const usz arena_checkpoint = event_bus->payload_arena.size;
     EventListener staged_listeners[EVENT_BUS_MAX_LISTENERS_PER_TYPE];
     Allocator arena_allocator = arena_get_allocator(&event_bus->payload_arena);
@@ -142,9 +143,9 @@ bool event_bus_publish(EventBus *bus, const EventContext *context) {
     }
 
     for(usz i = 0; i < event->listeners_count; i++) {
-        EventListener* listener_queue = darray_push(&event_bus->queue);
+        EventListener* listener_queue = DARRAY_PUSH(&event_bus->queue);
         if(!listener_queue) {
-            event_bus->queue.size = queue_checkpoint;
+            event_bus->queue._raw.size = queue_checkpoint;
             event_bus->payload_arena.size = arena_checkpoint;
             return FALSE;
         }
@@ -159,13 +160,13 @@ bool event_bus_process(EventBus* bus) {
     if(!bus || !bus->impl || bus->impl->processing || bus->impl->destroy_requested)
         return FALSE;
     EventBusImpl* event_bus = bus->impl;
-    if(event_bus->queue.size == 0)
+    if(DARRAY_SIZE(&event_bus->queue) == 0)
         return TRUE;
 
     event_bus->processing = TRUE;
     bool processed = TRUE;
-    for(usz i = 0; i < event_bus->queue.size; i++) {
-        EventListener* listener = darray_get_at(&event_bus->queue, i);
+    for(usz i = 0; i < DARRAY_SIZE(&event_bus->queue); i++) {
+        EventListener* listener = DARRAY_GET_AT(&event_bus->queue, i);
         if(!listener) {
             processed = FALSE;
             break;
@@ -184,7 +185,7 @@ bool event_bus_process(EventBus* bus) {
         return FALSE;
     }
 
-    darray_clear(&event_bus->queue);
+    DARRAY_CLEAR(&event_bus->queue);
     arena_clear(&event_bus->payload_arena);
     return processed;
 }

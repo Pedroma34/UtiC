@@ -19,13 +19,40 @@ void* darray_push_zeroed(DArray* darray);
 void* darray_get_at(DArray* darray, usz index);
 void darray_for_each(DArray* darray, void(*callback)(void* element));
 
-#define DARRAY_CREATE(Type, darray, allocator, capacity) \
-    darray_create((darray), (allocator), sizeof(Type), _Alignof(Type), (capacity))
-#define DARRAY_DESTROY(darray) \
-    darray_destroy((darray))
-#define DARRAY_PUSH(Type, darray) \
-    ((Type*)darray_push((darray)))
-#define DARRAY_PUSH_ZEROED(Type, darray) \
-    ((Type*)darray_push_zeroed((darray)))
-#define DARRAY_GET_AT(Type, darray, index) \
-    ((Type*)darray_get_at((darray), (index)))
+#define DARRAY(Type) \
+    struct {         \
+        DArray _raw; \
+        Type* _type; \
+    }
+
+#define DARRAY_CREATE(array, allocator, capacity) \
+    darray_create(                                \
+        &(array)->_raw,                           \
+        (allocator),                              \
+        sizeof(*(array)->_type),                  \
+        _Alignof(__typeof__(*(array)->_type)),    \
+        (capacity))
+
+#define DARRAY_DESTROY(array) \
+    darray_destroy(&(array)->_raw)
+
+#define DARRAY_CLEAR(array) \
+    darray_clear(&(array)->_raw)
+
+#define DARRAY_PUSH(array) \
+    ((__typeof__((array)->_type)) \
+        darray_push(&(array)->_raw))
+
+#define DARRAY_PUSH_ZEROED(array) \
+    ((__typeof__((array)->_type)) \
+        darray_push_zeroed(&(array)->_raw))
+
+#define DARRAY_GET_AT(array, index) \
+    ((__typeof__((array)->_type)) \
+        darray_get_at(&(array)->_raw, (index)))
+
+#define DARRAY_SIZE(array) \
+    ((usz)(array)->_raw.size)
+
+#define DARRAY_CAPACITY(array) \
+    ((usz)(array)->_raw.capacity)
