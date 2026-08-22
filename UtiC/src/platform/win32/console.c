@@ -1,5 +1,6 @@
 #ifdef _WIN32
 #include <stdio.h>
+#include <UtiC/core/types.h>
 #include <UtiC/io/console.h>
 #include <UtiC/string/cstr.h>
 #include <Windows.h>
@@ -39,10 +40,11 @@ void console_writef(const char* format, ...) {
 void console_vwritef(const char* format, va_list args) {
     if(!format)
         return;
-    va_list copy;
-    va_copy(copy, args);
-    vfprintf(stdout, format, copy);
-    va_end(copy);
+    #define BUFFER_SIZE KB(1)
+    /* for now we truncate message if greater than size */
+    static char buffer[BUFFER_SIZE] = { 0 };
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    console_write(buffer);
 }
 
 
