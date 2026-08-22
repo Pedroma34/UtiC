@@ -6,6 +6,7 @@
 #include <UtiC/memory/arena.h>
 #include <UtiC/containers/darray.h>
 #include <UtiC/string/cstr.h>
+#include <UtiC/io/console.h>
 
 struct Person {
     const char* name;
@@ -72,6 +73,9 @@ i32 main(void) {
         goto cleanup;
 
     event_bus_process(&event_bus);
+    
+    console_write("This is from the console API\n");
+    console_writef("This is a %s message!\n", "formatted");
 
 cleanup:
     event_bus_destroy(&event_bus);

@@ -10,6 +10,7 @@ set(
     "src/memory/allocator.c"
     "src/memory/allocator_counter.c"
     "$<$<PLATFORM_ID:Windows>:src/platform/win32/allocator_system.c>"
+    "$<$<PLATFORM_ID:Windows>:src/platform/win32/console.c>"
     "$<$<PLATFORM_ID:Linux>:src/platform/linux/allocator_system.c>"
     "src/memory/arena.c"
     #containers
@@ -28,6 +29,8 @@ set(
     "include/UtiC/memory/allocator_counter.h"
     "include/UtiC/memory/allocator_system.h"
     "include/UtiC/memory/arena.h"
+    #io
+    "include/UtiC/io/console.h"
     #containers
     "include/UtiC/containers/darray.h"
     #string
