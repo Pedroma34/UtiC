@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.22)
 project(UtiC LANGUAGES C)
-set(CMAKE_C_STANDARD 11 REQUIRED)
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set(
     SOURCES
     #core
     "src/core/event_bus.c"
+    "src/core/randy.c"
     #memory
     "src/memory/allocator.c"
     "src/memory/allocator_counter.c"
@@ -24,6 +26,8 @@ set(
     HEADERS
     #core
     "include/UtiC/core/event_bus.h"
+    "include/UtiC/core/randy.h"
+    "include/UtiC/core/detail/randy.inl.h"
     "include/UtiC/core/types.h"
     #memory
     "include/UtiC/memory/allocator.h"

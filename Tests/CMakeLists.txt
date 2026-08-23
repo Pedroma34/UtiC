@@ -45,6 +45,55 @@ foreach(TEST_CASE IN LISTS UTIC_EVENT_BUS_TEST_CASES)
     )
 endforeach()
 
+add_executable(
+    UtiCRandyTests
+    "randy_tests.c"
+)
+
+set_target_properties(
+    UtiCRandyTests
+    PROPERTIES
+        C_STANDARD 11
+        C_STANDARD_REQUIRED YES
+        C_EXTENSIONS NO
+)
+
+target_link_libraries(
+    UtiCRandyTests
+    PRIVATE
+        UtiC
+)
+
+set(
+    UTIC_RANDY_TEST_CASES
+    known_answer_vectors
+    initialization_and_copy_determinism
+    time_seed_smoke
+    mixed_width_consumption
+    signed_numeric_mapping
+    boolean_and_float_conversions
+    macros_and_single_evaluation
+    integer_range_boundaries
+    exact_wide_integer_ranges
+    range_rejection_paths
+    jump_vectors
+    long_jump_vectors
+    invalid_range_assertions
+)
+
+foreach(TEST_CASE IN LISTS UTIC_RANDY_TEST_CASES)
+    add_test(
+        NAME "UtiC.Randy.${TEST_CASE}"
+        COMMAND UtiCRandyTests "${TEST_CASE}"
+    )
+    set_tests_properties(
+        "UtiC.Randy.${TEST_CASE}"
+        PROPERTIES
+            LABELS "UtiC;randy"
+            TIMEOUT 10
+    )
+endforeach()
+
 if(TARGET Testbed)
     add_test(
         NAME UtiC.Examples.TestbedSmoke

@@ -7,6 +7,7 @@
 #include <UtiC/containers/darray.h>
 #include <UtiC/string/cstr.h>
 #include <UtiC/io/console.h>
+#include <UtiC/core/randy.h>
 
 struct Person {
     const char* name;
@@ -45,6 +46,7 @@ i32 main(void) {
     AllocatorCounter counter = allocator_counter_create(system_allocator(), counter_callback, stdout);
     Arena arena = { 0 };
     EventBus event_bus = { 0 };
+    Randy randy = { 0 };
     if(!arena_create(&arena, allocator_counter_get_allocator(&counter), MB(1))) {
         printf("Arena creation failed\n");
         goto cleanup;
@@ -53,7 +55,7 @@ i32 main(void) {
         printf("Event Bus creation failed\n");
         goto cleanup;
     }
-
+    randy = randy_init(randy_get_seed_time());
 
     EventSubscriber sub;
     sub = (EventSubscriber) {
@@ -76,6 +78,13 @@ i32 main(void) {
     
     console_write("This is from the console API\n");
     console_writef("This is a %s message!\n", "formatted");
+
+    console_write("Generating numbers...\n");
+    i32 numbers[3] = { 0 };
+    for(usz i = 0; i < sizeof(numbers) / sizeof(numbers[0]); i++) {
+        numbers[i] = RANDY_RANGE(i32, &randy, -10, 10);
+    }
+    console_writef("Numbers: %d | %d | %d\n", numbers[0], numbers[1], numbers[2]);
 
 cleanup:
     event_bus_destroy(&event_bus);
