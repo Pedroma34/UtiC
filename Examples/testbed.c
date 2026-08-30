@@ -31,19 +31,24 @@ static double format_bytes(usz bytes, const char** unit) {
     return value;
 }
 
+struct Client {
+    const char* name;
+};
+
 static void counter_callback(AllocatorCounterEvent event, const AllocatorCounterInfo* info, usz size, void* callback_user) {
-    FILE* output = (FILE*)callback_user;
+    struct Client* client = callback_user;
     const char* event_name = event == ALLOCATOR_COUNTER_EVENT_ALLOC ? "Allocation" : "Deallocation";
     const char* size_unit;
     const char* live_unit;
     double formatted_size = format_bytes(size, &size_unit);
     double formatted_live = format_bytes(info->live_bytes, &live_unit);
 
-    fprintf(output, "%s happened: %.2f %s (%.2f %s live)\n", event_name, formatted_size, size_unit, formatted_live, live_unit);
+    console_writef("[%s] %s happened: %.2f %s (%.2f %s live)\n", client->name, event_name, formatted_size, size_unit, formatted_live, live_unit);
 }
 
 i32 main(void) {
-    AllocatorCounter counter = allocator_counter_create(system_allocator(), counter_callback, stdout);
+    struct Client client = (struct Client) { .name = "UTIC3BITCH" };
+    AllocatorCounter counter = allocator_counter_create(system_allocator(), counter_callback, &client);
     Arena arena = { 0 };
     EventBus event_bus = { 0 };
     Randy randy = { 0 };
