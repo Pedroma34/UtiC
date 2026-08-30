@@ -91,6 +91,13 @@ i32 main(void) {
     }
     console_writef("Numbers: %d | %d | %d\n", numbers[0], numbers[1], numbers[2]);
 
+    Vector2f vectors[2] = { 
+        { .x = 1.4, .y = 2.3 },
+        { .x = 2.1, .y = 0.1 }
+    };
+    Vector2f vector_result = VECTOR2_ADD(vectors[0], vectors[1]);
+    console_writef("Vec2f: %.2f | %.2f\n", vector_result.x, vector_result.y);
+
 cleanup:
     event_bus_destroy(&event_bus);
     const char* arena_size_str;
