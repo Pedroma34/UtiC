@@ -62,7 +62,7 @@ bool cstr_append(char* destination, usz destination_capacity, const char* source
 
 bool cstr_compare(const char* str_1, const char* str_2) {
     if(!str_1 || !str_2)
-        FALSE;
+        return FALSE;
     const usz str_1_len = cstr_length(str_1);
     const usz str_2_len = cstr_length(str_2);
     if(str_1_len != str_2_len)
