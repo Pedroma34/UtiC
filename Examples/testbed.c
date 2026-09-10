@@ -1,13 +1,5 @@
 #include <stdio.h>
-#include <UtiC/core/event_bus.h>
-#include <UtiC/memory/allocator.h>
-#include <UtiC/memory/allocator_counter.h>
-#include <UtiC/memory/allocator_system.h>
-#include <UtiC/memory/arena.h>
-#include <UtiC/containers/darray.h>
-#include <UtiC/string/cstr.h>
-#include <UtiC/io/console.h>
-#include <UtiC/core/randy.h>
+#include <UtiC/UtiC.h>
 
 struct Person {
     const char* name;
