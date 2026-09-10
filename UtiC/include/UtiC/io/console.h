@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdarg.h>
 #include <UtiC/core/types.h>
 

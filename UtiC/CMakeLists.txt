@@ -24,6 +24,12 @@ set(
 
 set(
     HEADERS
+    "include/UtiC/UtiC.h"
+    "include/UtiC/core.h"
+    "include/UtiC/memory.h"
+    "include/UtiC/containers.h"
+    "include/UtiC/string.h"
+    "include/UtiC/io.h"
     #core
     "include/UtiC/core/event_bus.h"
     "include/UtiC/core/randy.h"
