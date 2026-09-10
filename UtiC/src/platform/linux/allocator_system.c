@@ -19,7 +19,7 @@ static void* linux_alloc(usz size, usz alignment, void* user) {
         return NULL;
 
     if (alignment == 0)
-        alignment = _Alignof(void*);
+        alignment = __alignof(void*);
     if (!linux_is_power_of_two(alignment))
         return NULL;
 

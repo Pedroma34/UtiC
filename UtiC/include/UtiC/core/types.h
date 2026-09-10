@@ -34,3 +34,28 @@ typedef double max_align; /* Most aligned type according to std::max_align_t in 
 #define KB(x) ((x) * 1024ULL)
 #define MB(x) (KB(x) * 1024ULL)
 #define GB(x) (MB(x) * 1024ULL)
+
+#define VECTOR2(Type) \
+    struct {          \
+        Type x;       \
+        Type y;       \
+    }
+#define VECTOR2_ADD(a, b)   \
+    ((__typeof__(a)){       \
+        .x = (a).x + (b).x, \
+        .y = (a).y + (b).y, \
+    })
+#define VECTOR2_SUB(a, b)   \
+    ((__typeof__(a)){       \
+        .x = (a).x - (b).x, \
+        .y = (a).y - (b).y, \
+    })
+#define VECTOR2_MUT(a, b)   \
+    ((__typeof__(a)){       \
+        .x = (a).x * (b).x, \
+        .y = (a).y * (b).y, \
+    })
+
+typedef VECTOR2(f32) Vector2f;
+typedef VECTOR2(i32) Vector2i;
+typedef VECTOR2(u32) Vector2u;

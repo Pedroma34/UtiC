@@ -31,19 +31,24 @@ static double format_bytes(usz bytes, const char** unit) {
     return value;
 }
 
+struct Client {
+    const char* name;
+};
+
 static void counter_callback(AllocatorCounterEvent event, const AllocatorCounterInfo* info, usz size, void* callback_user) {
-    FILE* output = (FILE*)callback_user;
+    struct Client* client = callback_user;
     const char* event_name = event == ALLOCATOR_COUNTER_EVENT_ALLOC ? "Allocation" : "Deallocation";
     const char* size_unit;
     const char* live_unit;
     double formatted_size = format_bytes(size, &size_unit);
     double formatted_live = format_bytes(info->live_bytes, &live_unit);
 
-    fprintf(output, "%s happened: %.2f %s (%.2f %s live)\n", event_name, formatted_size, size_unit, formatted_live, live_unit);
+    console_writef("[%s] %s happened: %.2f %s (%.2f %s live)\n", client->name, event_name, formatted_size, size_unit, formatted_live, live_unit);
 }
 
 i32 main(void) {
-    AllocatorCounter counter = allocator_counter_create(system_allocator(), counter_callback, stdout);
+    struct Client client = (struct Client) { .name = "UTIC3BITCH" };
+    AllocatorCounter counter = allocator_counter_create(system_allocator(), counter_callback, &client);
     Arena arena = { 0 };
     EventBus event_bus = { 0 };
     Randy randy = { 0 };
@@ -85,6 +90,13 @@ i32 main(void) {
         numbers[i] = RANDY_RANGE(i32, &randy, -10, 10);
     }
     console_writef("Numbers: %d | %d | %d\n", numbers[0], numbers[1], numbers[2]);
+
+    Vector2f vectors[2] = { 
+        { .x = 1.4, .y = 2.3 },
+        { .x = 2.1, .y = 0.1 }
+    };
+    Vector2f vector_result = VECTOR2_ADD(vectors[0], vectors[1]);
+    console_writef("Vec2f: %.2f | %.2f\n", vector_result.x, vector_result.y);
 
 cleanup:
     event_bus_destroy(&event_bus);
